@@ -1,0 +1,17 @@
+var express=require('express');
+const app = express();
+const port =3000;
+app.use (express.json());
+
+app.post('/', function (req, res) {
+	const temp=req.body;	
+   'use strict';
+   const fs = require('fs');
+   let data = JSON.stringify(temp);
+   fs.writeFileSync('Task2.json', temp);
+   res.send(temp);
+});
+
+
+
+app.listen(3000);
