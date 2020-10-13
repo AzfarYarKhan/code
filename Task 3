@@ -1,0 +1,132 @@
+var express = require('express');
+var mysql = require('mysql');
+const Sequelize = require('sequelize');
+
+
+var app = express();
+app.use(express.json());
+const port = 3000;
+
+
+const connection = new Sequelize('mydb1', 'root', 'karoly123@', {
+    host: '127.0.0.1',
+    port: '3307',
+    dialect: 'mysql',
+});
+
+connection
+    .authenticate()
+    .then(() => {
+        console.log('Connection is successfull');
+    })
+    .catch(err => {
+        console.error('connection failed', err);
+    });
+
+/* creation table starts*/
+const user = connection.define('user', {
+    id: {
+        type: Sequelize.INTEGER,
+        autoIncrement: true,
+        primaryKey: true,
+    },
+
+    name: {
+        type: Sequelize.STRING
+    }
+
+}, {
+    freezeTableName: true,
+});
+
+/*user.sync({
+    force: true
+});
+*/
+/* creation table ends*/
+
+
+/* adding entry starts*/
+app.post('/api/create', function(req, res) {
+    const temp = req.body.name;
+    let data = JSON.stringify(temp);
+    'use strict';
+    user.create({
+        name: data
+    }).then(user => {
+        // Send created user to client
+        return user.userId;
+        console.error('table entry successfull');
+    }).catch(function(err) {
+        console.log("entry creation failed " + err);
+        return 0;
+    });
+    res.send('entry added successfully');
+});
+/* adding entry ends*/
+
+/* List all starts*/
+app.get('/api/listall/', (req, res) => {
+    user.findAll().then(users => {
+        console.log(users);
+        res.send(users);
+    }).catch(function(err) {
+        console.log("findAll failed with error: " + err);
+        return null;
+    });
+
+});
+/* list al ends*/
+
+
+/* Read by ID starts*/
+app.get('/api/read/:id', (req, res) => {
+    user.findByPk(req.params.id).then(user => {
+        console.log(user);
+        res.send(user);
+    }).catch(function(err) {
+        console.log("findById failed with error: " + err);
+        return null;
+
+    });
+});
+/* Read by ID ends*/
+
+
+/* Update by ID starts*/
+app.post('/api/update/:id', (req, res) => {
+    const newname = req.body.name;
+    let updated = JSON.stringify(newname);
+    user.update({
+        name: updated
+    }, {
+        where: {
+            id: req.params.id
+        }
+    }).then(() => {
+        // console.log(id);
+    }).catch(function(err) {
+        console.log("update failed with error: " + err);
+        return 0;
+    });
+    res.send('user updated sucessfully');
+});
+/* Update by ID ends*/
+
+/* Delete by ID starts*/
+app.get('/api/delete/:id', (req, res) => {
+    user.destroy({
+        where: {
+            id: req.params.id
+        }
+    }).then(() => {
+        console.log('deleted record with mentioned  id');
+    }).catch(function(err) {
+        console.log("delete failed with error: " + err);
+        return 0;
+    });
+
+    res.send('user deleted sucessfully');
+});
+/* Delete by ID ends*/
+app.listen(3000);
