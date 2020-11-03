@@ -1,0 +1,43 @@
+import Amplify, { API } from "aws-amplify";
+import awsconfig from "./aws-exports";
+
+Amplify.configure(awsconfig);
+var express = require("express");
+var bodyParser = require("body-parser");
+
+var app = express();
+app.use(bodyParser.json());
+app.use(awsServerlessExpressMiddleware.eventContext());
+
+const AWS = require("aws-sdk");
+const SES = new AWS.SES();
+
+exports.handler = async (event) => {
+	const { to, subject } = JSON.parse(event.body);
+
+	const params = {
+		Destination: {
+			ToAddresses: [to],
+		},
+		Message: {
+			Subject: {
+				Data: subject,
+			},
+		},
+		Source: "gmoja67@gmail.com",
+	};
+
+	try {
+		await SES.sendEmail(params).promise();
+		return {
+			statusCode: 200,
+			body: "Email sent!",
+		};
+	} catch (e) {
+		console.error(e);
+		return {
+			statusCode: 400,
+			body: "Sending failed",
+		};
+	}
+};
